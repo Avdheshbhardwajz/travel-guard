@@ -1,0 +1,29 @@
+# Dependencies
+node_modules/
+
+# Environment (included intentionally for this project)
+# .env
+
+# Build output
+dist/
+build/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# Prisma
+backend/prisma/migrations/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Docker volumes
+pgdata/
+
+
