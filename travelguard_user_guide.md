@@ -33,7 +33,7 @@ TravelGuard is an **intelligent travel planning platform** that helps you organi
 
 Open the app at **http://localhost:5173** and you'll land on the login page.
 
-![TravelGuard Login Page](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/login_page.png)
+![TravelGuard Login Page](docs/images/login_page.png)
 
 If you're a first-time user, click **"Create one"** at the bottom to go to the registration page.
 
@@ -55,7 +55,7 @@ Click **"Create Account"** and you'll be automatically logged in and redirected 
 
 Once logged in, the **Dashboard** is your home base. It gives you a complete overview of your travel life.
 
-![Dashboard Overview](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/dashboard_overview.png)
+![Dashboard Overview](docs/images/dashboard_overview.png)
 
 Here's what you'll see:
 
@@ -89,7 +89,7 @@ Each trip appears as a card showing:
 
 Click the **"+ New Trip"** button in the top-right corner of the dashboard.
 
-![Create Trip Modal](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/create_trip_modal.png)
+![Create Trip Modal](docs/images/create_trip_modal.png)
 
 A modal window opens with the following fields:
 
@@ -113,7 +113,7 @@ Click **"Create Trip"** and your trip is saved. It will appear instantly on the 
 
 Click on any trip card on the Dashboard to open the **Trip Details** page.
 
-![Trip Details — Itinerary View](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/trip_details_itinerary.png)
+![Trip Details — Itinerary View](docs/images/trip_details_itinerary.png)
 
 The Trip Details page shows:
 
@@ -149,7 +149,7 @@ Hover over any itinerary item and a **🗑 delete icon** appears on the right. C
 
 Switch to the **Expenses** tab to view and manage your spending.
 
-![Trip Details — Expenses View](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/trip_details_expenses.png)
+![Trip Details — Expenses View](docs/images/trip_details_expenses.png)
 
 Each expense shows:
 - A **category icon** (colored by type)
@@ -163,7 +163,7 @@ The **Spending Breakdown** panel on the right shows your expenses grouped by cat
 
 Click **"+ Add Expense"** to open the inline form.
 
-![Add Expense Form](/Users/avdheshbhardwaj/.gemini/antigravity/brain/561e5960-a54c-4df8-b351-6aabe73c8709/add_expense_form.png)
+![Add Expense Form](docs/images/add_expense_form.png)
 
 Fill in:
 
