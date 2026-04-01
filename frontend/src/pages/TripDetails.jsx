@@ -4,6 +4,7 @@ import {
   ArrowLeft, MapPin, Calendar, IndianRupee, Edit2, Trash2,
   Plus, Clock, Navigation, Utensils, Car, Home, Package,
   ListChecks, Receipt, Wallet, TrendingDown, TrendingUp,
+  Share2, Copy, Check, Link2, X, RefreshCw,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import api from '../services/api';
@@ -14,6 +15,21 @@ const categoryIcons = {
   accommodation: Home,
   other: Package,
 };
+
+const currencyOptions = [
+  { value: 'INR', label: '₹ INR', symbol: '₹' },
+  { value: 'USD', label: '$ USD', symbol: '$' },
+  { value: 'EUR', label: '€ EUR', symbol: '€' },
+  { value: 'GBP', label: '£ GBP', symbol: '£' },
+  { value: 'JPY', label: '¥ JPY', symbol: '¥' },
+  { value: 'AUD', label: 'A$ AUD', symbol: 'A$' },
+  { value: 'CAD', label: 'C$ CAD', symbol: 'C$' },
+  { value: 'SGD', label: 'S$ SGD', symbol: 'S$' },
+  { value: 'THB', label: '฿ THB', symbol: '฿' },
+  { value: 'AED', label: 'د.إ AED', symbol: 'د.إ' },
+];
+
+const currencySymbolMap = Object.fromEntries(currencyOptions.map(c => [c.value, c.symbol]));
 
 function TripDetails() {
   const { id } = useParams();
@@ -26,7 +42,7 @@ function TripDetails() {
   const [showItineraryForm, setShowItineraryForm] = useState(false);
   const [showExpenseForm, setShowExpenseForm] = useState(false);
   const [itineraryForm, setItineraryForm] = useState({ day: '', activity: '', location: '', time: '' });
-  const [expenseForm, setExpenseForm] = useState({ title: '', amount: '', category: 'other', date: '' });
+  const [expenseForm, setExpenseForm] = useState({ title: '', amount: '', category: 'other', currency: 'INR', date: '' });
   const [formLoading, setFormLoading] = useState(false);
 
   // Edit trip
@@ -36,6 +52,16 @@ function TripDetails() {
   // Delete confirm
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+  // Share
+  const [showShareModal, setShowShareModal] = useState(false);
+  const [shareToken, setShareToken] = useState(null);
+  const [shareLoading, setShareLoading] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  // Currency conversion
+  const [exchangeRates, setExchangeRates] = useState(null);
+  const [showConversion, setShowConversion] = useState(false);
+
   useEffect(() => {
     fetchTrip();
   }, [id]);
@@ -44,6 +70,7 @@ function TripDetails() {
     try {
       const res = await api.get(`/trips/${id}`);
       setTrip(res.data);
+      setShareToken(res.data.shareToken || null);
       setEditForm({
         title: res.data.title || '',
         destination: res.data.destination || '',
@@ -61,10 +88,14 @@ function TripDetails() {
     }
   };
 
-  const formatCurrency = (amount) => {
-    return new Intl.NumberFormat('en-IN', {
-      style: 'currency', currency: 'INR', maximumFractionDigits: 0,
-    }).format(amount || 0);
+  const formatCurrency = (amount, currency = 'INR') => {
+    const sym = currencySymbolMap[currency] || currency;
+    if (currency === 'INR') {
+      return new Intl.NumberFormat('en-IN', {
+        style: 'currency', currency: 'INR', maximumFractionDigits: 0,
+      }).format(amount || 0);
+    }
+    return `${sym}${new Intl.NumberFormat('en-US', { maximumFractionDigits: 2 }).format(amount || 0)}`;
   };
 
   const formatDate = (d) => {
@@ -87,6 +118,10 @@ function TripDetails() {
 
   const budgetPercent = trip?.budget ? Math.min((trip.totalSpent / trip.budget) * 100, 100) : 0;
   const budgetRemaining = trip?.budget ? trip.budget - trip.totalSpent : null;
+
+  // Check if trip has multi-currency expenses
+  const currencies = [...new Set(trip?.expenses?.map(e => e.currency) || [])];
+  const isMultiCurrency = currencies.length > 1;
 
   // ----- Handlers -----
 
@@ -130,7 +165,7 @@ function TripDetails() {
     try {
       await api.post(`/trips/${id}/expenses`, expenseForm);
       toast.success('Expense added');
-      setExpenseForm({ title: '', amount: '', category: 'other', date: '' });
+      setExpenseForm({ title: '', amount: '', category: 'other', currency: 'INR', date: '' });
       setShowExpenseForm(false);
       fetchTrip();
     } catch (err) {
@@ -169,6 +204,52 @@ function TripDetails() {
       navigate('/dashboard');
     } catch (err) {
       toast.error('Failed to delete trip');
+    }
+  };
+
+  // Share handlers
+  const handleGenerateShare = async () => {
+    setShareLoading(true);
+    try {
+      const res = await api.post(`/trips/${id}/share`);
+      setShareToken(res.data.shareToken);
+      toast.success('Share link generated!');
+    } catch (err) {
+      toast.error('Failed to generate share link');
+    } finally {
+      setShareLoading(false);
+    }
+  };
+
+  const handleRevokeShare = async () => {
+    try {
+      await api.delete(`/trips/${id}/share`);
+      setShareToken(null);
+      toast.success('Share link revoked');
+    } catch (err) {
+      toast.error('Failed to revoke share link');
+    }
+  };
+
+  const getShareUrl = () => {
+    return `${window.location.origin}/shared/${shareToken}`;
+  };
+
+  const copyShareLink = () => {
+    navigator.clipboard.writeText(getShareUrl());
+    setCopied(true);
+    toast.success('Link copied to clipboard!');
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // Currency conversion
+  const fetchRates = async () => {
+    try {
+      const res = await api.get('/currency/rates?base=INR');
+      setExchangeRates(res.data);
+      setShowConversion(true);
+    } catch (err) {
+      toast.error('Failed to fetch exchange rates');
     }
   };
 
@@ -213,6 +294,10 @@ function TripDetails() {
           )}
         </div>
         <div className="trip-detail-actions">
+          <button className="btn btn-secondary btn-sm" onClick={() => setShowShareModal(true)}>
+            <Share2 size={16} />
+            Share
+          </button>
           <button className="btn btn-secondary btn-sm" onClick={() => setShowEditTrip(true)}>
             <Edit2 size={16} />
             Edit
@@ -251,6 +336,46 @@ function TripDetails() {
           <div className="stat-label">Remaining</div>
         </div>
       </div>
+
+      {/* Multi-currency indicator */}
+      {isMultiCurrency && (
+        <div className="multi-currency-banner">
+          <RefreshCw size={16} />
+          <span>This trip has expenses in multiple currencies: {currencies.join(', ')}</span>
+          {!showConversion && (
+            <button className="btn btn-secondary btn-sm" onClick={fetchRates} style={{ marginLeft: 'auto' }}>
+              View Exchange Rates
+            </button>
+          )}
+        </div>
+      )}
+
+      {/* Live Exchange Rates */}
+      {showConversion && exchangeRates && (
+        <div className="card" style={{ marginBottom: '24px', padding: '16px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+            <h3 className="card-title" style={{ fontSize: '0.95rem' }}>
+              💱 Live Exchange Rates (Base: {exchangeRates.base})
+            </h3>
+            <button className="btn-icon btn-ghost" onClick={() => setShowConversion(false)}>
+              <X size={16} />
+            </button>
+          </div>
+          <div className="exchange-rates-grid">
+            {['USD', 'EUR', 'GBP', 'JPY', 'AUD', 'CAD', 'SGD', 'THB', 'AED'].map(cur => (
+              exchangeRates.rates[cur] !== undefined && (
+                <div key={cur} className="exchange-rate-chip">
+                  <span className="exchange-rate-code">{cur}</span>
+                  <span className="exchange-rate-value">{exchangeRates.rates[cur].toFixed(4)}</span>
+                </div>
+              )
+            ))}
+          </div>
+          <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '8px' }}>
+            {exchangeRates.fallback ? 'Using approximate rates (API offline)' : `Rates as of ${exchangeRates.date}`}
+          </div>
+        </div>
+      )}
 
       {/* Budget Bar */}
       {trip.budget && (
@@ -431,7 +556,7 @@ function TripDetails() {
                         />
                       </div>
                       <div className="form-group">
-                        <label className="form-label">Amount (₹) *</label>
+                        <label className="form-label">Amount *</label>
                         <input
                           type="number"
                           className="form-input"
@@ -441,7 +566,7 @@ function TripDetails() {
                         />
                       </div>
                     </div>
-                    <div className="form-row">
+                    <div className="form-row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
                       <div className="form-group">
                         <label className="form-label">Category</label>
                         <select
@@ -453,6 +578,18 @@ function TripDetails() {
                           <option value="transport">Transport</option>
                           <option value="accommodation">Accommodation</option>
                           <option value="other">Other</option>
+                        </select>
+                      </div>
+                      <div className="form-group">
+                        <label className="form-label">Currency</label>
+                        <select
+                          className="form-input"
+                          value={expenseForm.currency}
+                          onChange={(e) => setExpenseForm({ ...expenseForm, currency: e.target.value })}
+                        >
+                          {currencyOptions.map((c) => (
+                            <option key={c.value} value={c.value}>{c.label}</option>
+                          ))}
                         </select>
                       </div>
                       <div className="form-group">
@@ -495,9 +632,12 @@ function TripDetails() {
                           <div className="expense-date">
                             {new Date(exp.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
                             <span className={`category-badge ${exp.category}`} style={{ marginLeft: '8px' }}>{exp.category}</span>
+                            {exp.currency && exp.currency !== 'INR' && (
+                              <span className="currency-tag" style={{ marginLeft: '6px' }}>{exp.currency}</span>
+                            )}
                           </div>
                         </div>
-                        <div className="expense-amount">{formatCurrency(exp.amount)}</div>
+                        <div className="expense-amount">{formatCurrency(exp.amount, exp.currency)}</div>
                         <div className="expense-item-actions">
                           <button
                             className="btn-icon btn-ghost"
@@ -617,6 +757,63 @@ function TripDetails() {
             <div className="modal-footer">
               <button className="btn btn-secondary" onClick={() => setShowDeleteConfirm(false)}>Cancel</button>
               <button className="btn btn-danger" onClick={handleDeleteTrip}>Delete Trip</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Share Modal */}
+      {showShareModal && (
+        <div className="modal-overlay" onClick={() => setShowShareModal(false)}>
+          <div className="modal" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '480px' }}>
+            <div className="modal-header">
+              <h2>
+                <Share2 size={20} style={{ display: 'inline', verticalAlign: 'middle', marginRight: '8px' }} />
+                Share Trip
+              </h2>
+              <button className="btn-icon btn-ghost" onClick={() => setShowShareModal(false)}>
+                <X size={20} />
+              </button>
+            </div>
+            <div className="modal-body">
+              {shareToken ? (
+                <div className="share-active">
+                  <div className="share-link-box">
+                    <Link2 size={16} />
+                    <input
+                      className="form-input share-link-input"
+                      value={getShareUrl()}
+                      readOnly
+                      onClick={(e) => e.target.select()}
+                    />
+                    <button className="btn btn-primary btn-sm" onClick={copyShareLink}>
+                      {copied ? <Check size={14} /> : <Copy size={14} />}
+                      {copied ? 'Copied!' : 'Copy'}
+                    </button>
+                  </div>
+                  <p className="share-note">
+                    Anyone with this link can view this trip's itinerary and expenses (read-only).
+                  </p>
+                  <button className="btn btn-danger btn-sm" onClick={handleRevokeShare} style={{ marginTop: '12px' }}>
+                    Revoke Link
+                  </button>
+                </div>
+              ) : (
+                <div className="share-inactive">
+                  <div className="share-inactive-icon">
+                    <Share2 size={32} />
+                  </div>
+                  <h3>Share this trip with others</h3>
+                  <p>Generate a public link that lets anyone view this trip's itinerary and expenses.</p>
+                  <button
+                    className="btn btn-primary"
+                    onClick={handleGenerateShare}
+                    disabled={shareLoading}
+                  >
+                    {shareLoading ? 'Generating...' : 'Generate Share Link'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
         </div>

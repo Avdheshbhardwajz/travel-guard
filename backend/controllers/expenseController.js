@@ -5,7 +5,7 @@ const prisma = new PrismaClient();
 export const addExpense = async (req, res) => {
   try {
     const tripId = parseInt(req.params.tripId);
-    const { title, amount, category, date } = req.body;
+    const { title, amount, category, currency, date } = req.body;
 
     if (!title || !amount) {
       return res.status(400).json({ message: 'Title and amount are required' });
@@ -24,6 +24,7 @@ export const addExpense = async (req, res) => {
         title,
         amount: parseFloat(amount),
         category: category || 'other',
+        currency: currency || 'INR',
         date: date ? new Date(date) : new Date(),
         tripId,
       },

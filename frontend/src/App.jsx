@@ -4,6 +4,9 @@ import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
 import Dashboard from './pages/Dashboard';
 import TripDetails from './pages/TripDetails';
+import EmergencyPage from './pages/EmergencyPage';
+import EmergencyDirectoryPage from './pages/EmergencyDirectoryPage';
+import SharedTripPage from './pages/SharedTripPage';
 import PrivateRoute from './components/PrivateRoute';
 import AppLayout from './components/AppLayout';
 
@@ -28,6 +31,10 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+
+          {/* Shared Trip - Public (no auth, no layout) */}
+          <Route path="/shared/:token" element={<SharedTripPage />} />
+
           <Route
             path="/dashboard"
             element={
@@ -44,6 +51,26 @@ function App() {
               <PrivateRoute>
                 <AppLayout>
                   <TripDetails />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/emergency"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <EmergencyPage />
+                </AppLayout>
+              </PrivateRoute>
+            }
+          />
+          <Route
+            path="/emergency-directory"
+            element={
+              <PrivateRoute>
+                <AppLayout>
+                  <EmergencyDirectoryPage />
                 </AppLayout>
               </PrivateRoute>
             }

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router-dom';
-import { LayoutDashboard, Compass, LogOut, Menu, X, Shield } from 'lucide-react';
+import { LayoutDashboard, LogOut, Menu, X, Shield, Siren, BookOpen } from 'lucide-react';
 
 function AppLayout({ children }) {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -47,6 +47,22 @@ function AppLayout({ children }) {
           >
             <LayoutDashboard size={18} />
             Dashboard
+          </NavLink>
+          <NavLink
+            to="/emergency"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <Siren size={18} />
+            Emergency & SOS
+          </NavLink>
+          <NavLink
+            to="/emergency-directory"
+            className={({ isActive }) => `sidebar-link ${isActive ? 'active' : ''}`}
+            onClick={() => setSidebarOpen(false)}
+          >
+            <BookOpen size={18} />
+            Emergency Directory
           </NavLink>
         </nav>
 

@@ -11,12 +11,13 @@ datasource db {
 }
 
 model User {
-  id        Int       @id @default(autoincrement())
-  name      String
-  email     String    @unique
-  password  String
-  createdAt DateTime  @default(now())
-  trips     Trip[]
+  id                Int                @id @default(autoincrement())
+  name              String
+  email             String             @unique
+  password          String
+  createdAt         DateTime           @default(now())
+  trips             Trip[]
+  emergencyContacts EmergencyContact[]
 }
 
 model Trip {
@@ -28,6 +29,7 @@ model Trip {
   endDate     DateTime?
   budget      Float?
   status      String      @default("planning")
+  shareToken  String?     @unique
   userId      Int
   user        User        @relation(fields: [userId], references: [id], onDelete: Cascade)
   itineraries Itinerary[]
@@ -51,7 +53,17 @@ model Expense {
   title    String
   amount   Float
   category String   @default("other")
+  currency String   @default("INR")
   date     DateTime @default(now())
   tripId   Int
   trip     Trip     @relation(fields: [tripId], references: [id], onDelete: Cascade)
+}
+
+model EmergencyContact {
+  id           Int    @id @default(autoincrement())
+  name         String
+  phone        String
+  relationship String @default("other")
+  userId       Int
+  user         User   @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

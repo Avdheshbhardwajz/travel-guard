@@ -5,6 +5,9 @@ import authRoutes from './routes/authRoutes.js';
 import tripRoutes from './routes/tripRoutes.js';
 import expenseRoutes from './routes/expenseRoutes.js';
 import itineraryRoutes from './routes/itineraryRoutes.js';
+import emergencyRoutes from './routes/emergencyRoutes.js';
+import shareRoutes from './routes/shareRoutes.js';
+import currencyRoutes from './routes/currencyRoutes.js';
 
 dotenv.config();
 
@@ -24,6 +27,9 @@ app.use('/api/auth', authRoutes);
 app.use('/api/trips', tripRoutes);
 app.use('/api/expenses', expenseRoutes);
 app.use('/api/itinerary', itineraryRoutes);
+app.use('/api/emergency-contacts', emergencyRoutes);
+app.use('/api', shareRoutes);
+app.use('/api/currency', currencyRoutes);
 
 // Global error handler
 app.use((err, req, res, next) => {
